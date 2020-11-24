@@ -406,8 +406,14 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             TopLevelItem tli = (TopLevelItem) item;
             Jenkins jenkins = Jenkins.get();
             Computer.threadPoolForRemoting.submit(new CleanupTask(tli, jenkins));
-            // Starts provisioner Thread which is tasked with only starting cleanup Threads if Thread limit isn't reached.
-            new CleanupTaskProvisioner(tli, jenkins.getNodes()).run();
+            if(System.getenv("BRANCH_API_THREAD_LIMIT") == null){
+                jenkins.getNodes().forEach((node) -> {
+                    Computer.threadPoolForRemoting.submit(new CleanupTask(tli, node));
+                });
+            }else{
+                // Starts provisioner Thread which is tasked with only starting cleanup Threads if Thread limit isn't reached.
+                new CleanupTaskProvisioner(tli, jenkins.getNodes()).run();
+            }
         }
 
         @Override
@@ -449,8 +455,6 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             @NonNull
             private final Queue<Node> nodes;
             
-            private static final double MEMORY_SATURATION_LIMIT = 60.00;
-            
             public CleanupTaskProvisioner(TopLevelItem tli, List<Node> nodes) {
                 this.tli = tli;
                 this.nodes = new LinkedList<>(nodes);
@@ -464,7 +468,7 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
                         // If thread limit is reached break While Loop - Check if Queue is empty if not - retry
                         while(hasFreeThreadVolume() && !nodes.isEmpty()){
                             Computer.threadPoolForRemoting.submit(new CleanupTask(tli, nodes.poll()));
-                            LOGGER.log(Level.INFO, "LIVE THREADS" + ManagementFactory.getThreadMXBean().getThreadCount());
+                            LOGGER.log(Level.INFO, "LIVE THREAD COUNT : {0}", ManagementFactory.getThreadMXBean().getThreadCount());
                         }
                     // If the Queue is empty it will set isRunning to False which will terminated the Loop
                     isRunning = !nodes.isEmpty();
@@ -475,17 +479,9 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             }
         }
         
-        private static double calculateUsedMemoryPercentage(){
-            Runtime instance = Runtime.getRuntime();
-            long totalMemory = instance.totalMemory();
-            long freeMemory = instance.freeMemory();
-            long usedMemory = totalMemory - freeMemory;
-            return (double)usedMemory / totalMemory * 100;
-        }
-        
         private static boolean hasFreeThreadVolume(){
             int threadLimit = Integer.parseInt(System.getenv("BRANCH_API_THREAD_LIMIT"));
-            LOGGER.log(Level.INFO, "ThreadLimit Loaded from Env" + threadLimit);
+            LOGGER.log(Level.INFO, "ThreadLimit Loaded from Environment : {0}", threadLimit);
             int currentThreadCount = ManagementFactory.getThreadMXBean().getThreadCount();
             
             return currentThreadCount < threadLimit;
