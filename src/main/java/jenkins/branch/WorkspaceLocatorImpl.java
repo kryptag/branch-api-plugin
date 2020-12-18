@@ -471,16 +471,14 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             @Override
             public void run() {
                 try {
-                    boolean isRunning = true;
-                    while(isRunning){                   
-                        // If thread limit is reached break While Loop - Check if Queue is empty if not - retry
-                        while(hasFreeThreadVolume() && !nodes.isEmpty()){
-                            Computer.threadPoolForRemoting.submit(new CleanupTask(tli, nodes.poll()));
-                            LOGGER.log(Level.INFO, "LIVE THREAD COUNT : {0}", ManagementFactory.getThreadMXBean().getThreadCount());
+                    while (!nodes.isEmpty()){                   
+                        if (hasFreeThreadVolume()) {
+                            Computer.threadPoolForRemoting.submit(new CleanupTask(tli, nodes.remove()));
+                        } else {
+                            Thread.sleep(1000);
                         }
-                    // If the Queue is empty it will set isRunning to False which will terminated the Loop
-                    isRunning = !nodes.isEmpty();
-                    }   
+                        LOGGER.log(Level.INFO, "LIVE THREAD COUNT : {0}", ManagementFactory.getThreadMXBean().getThreadCount());
+                    }
                 } catch (Exception e) {
                     LOGGER.log(Level.WARNING, e.getMessage());
                 }
