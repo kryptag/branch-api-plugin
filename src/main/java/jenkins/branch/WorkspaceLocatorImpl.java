@@ -463,6 +463,9 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
                 if (threadLimit > 0) {
                     LOGGER.log(Level.INFO, "ThreadLimit Loaded from Environment : {0}", threadLimit);
                 }
+                if (threadLimit > 0) {
+                    LOGGER.log(Level.INFO, "ThreadLimit Loaded from Environment : {0}", threadLimit);
+                }
             }
             
             @Override
