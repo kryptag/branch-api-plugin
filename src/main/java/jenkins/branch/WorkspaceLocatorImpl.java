@@ -406,13 +406,8 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             TopLevelItem tli = (TopLevelItem) item;
             Jenkins jenkins = Jenkins.get();
             Computer.threadPoolForRemoting.submit(new CleanupTask(tli, jenkins));
-            if(System.getenv("BRANCH_API_THREAD_LIMIT") == null){
-                jenkins.getNodes().forEach((node) -> {
-                    Computer.threadPoolForRemoting.submit(new CleanupTask(tli, node));
-                });
-            }else{
-                // Starts provisioner Thread which is tasked with only starting cleanup Threads if Thread limit isn't reached.
-                new CleanupTaskProvisioner(tli, jenkins.getNodes()).run();
+            // Starts provisioner Thread which is tasked with starting cleanup Threads
+            new CleanupTaskProvisioner(tli, jenkins.getNodes()).run();
             }
         }
 
