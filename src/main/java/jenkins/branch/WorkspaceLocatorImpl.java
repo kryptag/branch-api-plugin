@@ -487,9 +487,10 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             }
         }
         
-        private static boolean hasFreeThreadVolume(){
-            int threadLimit = Integer.parseInt(System.getenv("BRANCH_API_THREAD_LIMIT"));
-            LOGGER.log(Level.INFO, "ThreadLimit Loaded from Environment : {0}", threadLimit);
+        private boolean hasFreeThreadVolume(){
+            if (threadLimit <= 0) {
+                return true;
+            }
             int currentThreadCount = ManagementFactory.getThreadMXBean().getThreadCount();
             
             return currentThreadCount < threadLimit;
