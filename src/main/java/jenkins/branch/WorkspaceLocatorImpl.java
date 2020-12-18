@@ -449,7 +449,8 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             
             @NonNull
             private final Queue<Node> nodes;
-            
+                        @NonNull
+                        private final int threadLimit = Math.max(0, Integer.parseInt(System.getenv("BRANCH_API_THREAD_LIMIT", 0)));
             public CleanupTaskProvisioner(TopLevelItem tli, List<Node> nodes) {
                 this.tli = tli;
                 this.nodes = new LinkedList<>(nodes);
