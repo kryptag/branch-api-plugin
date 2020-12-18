@@ -453,6 +453,9 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             public CleanupTaskProvisioner(TopLevelItem tli, List<Node> nodes) {
                 this.tli = tli;
                 this.nodes = new LinkedList<>(nodes);
+                if (threadLimit > 0) {
+                    LOGGER.log(Level.INFO, "ThreadLimit Loaded from Environment : {0}", threadLimit);
+                }
             }
             
             @Override
