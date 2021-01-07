@@ -411,7 +411,6 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             }
         }
 
-        @Override
         public void onLocationChanged(Item item, String oldFullName, String newFullName) {
             if (!(item instanceof TopLevelItem)) {
                 return;
@@ -450,7 +449,7 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             @NonNull
             private final Queue<Node> nodes;
             
-            private final int threadLimit = Math.max(0, Integer.parseInt(System.getenv("BRANCH_API_THREAD_LIMIT", 0)));
+            private final int threadLimit = Math.max(0, Integer.parseInt(System.getenv("BRANCH_API_THREAD_LIMIT")));
 
             public CleanupTaskProvisioner(TopLevelItem tli, List<Node> nodes) {
                 this.tli = tli;
@@ -464,7 +463,7 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             public void run() {
                 try {
                     while (!nodes.isEmpty()){                   
-                        if (hasFreeThreadVolume()) {
+                        if (hasFreeThreadVolume(threadLimit)) {
                             Computer.threadPoolForRemoting.submit(new CleanupTask(tli, nodes.remove()));
                         } else {
                             Thread.sleep(1000);
@@ -475,15 +474,16 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
                     LOGGER.log(Level.WARNING, e.getMessage());
                 }
             }
-        }
-        
-        private boolean hasFreeThreadVolume(){
-            if (threadLimit <= 0) {
-                return true;
-            }
-            int currentThreadCount = ManagementFactory.getThreadMXBean().getThreadCount();
             
-            return currentThreadCount < threadLimit;
+            private boolean hasFreeThreadVolume(int threadLimit){
+                if (threadLimit <= 0) {
+                    return true;
+                }
+                int currentThreadCount = ManagementFactory.getThreadMXBean().getThreadCount();
+            
+                return currentThreadCount < threadLimit;
+            }
+            
         }
 
         private static class CleanupTask implements Runnable {
@@ -619,7 +619,6 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
 
         }
 
-    }
 
     /**
      * Cleans up workspaces for apparently missing jobs when a node goes online.
