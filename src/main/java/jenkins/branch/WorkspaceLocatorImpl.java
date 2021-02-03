@@ -408,9 +408,9 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             Computer.threadPoolForRemoting.submit(new CleanupTask(tli, jenkins));
             // Starts provisioner Thread which is tasked with starting cleanup Threads
             new CleanupTaskProvisioner(tli, jenkins.getNodes()).run();
-            }
         }
 
+        @Override
         public void onLocationChanged(Item item, String oldFullName, String newFullName) {
             if (!(item instanceof TopLevelItem)) {
                 return;
@@ -619,7 +619,7 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
 
         }
 
-
+    }
     /**
      * Cleans up workspaces for apparently missing jobs when a node goes online.
      * This is a counterpart to {@link Deleter},
@@ -680,6 +680,5 @@ public class WorkspaceLocatorImpl extends WorkspaceLocator {
             }
         }
 
-    }
-
+    }   
 }
